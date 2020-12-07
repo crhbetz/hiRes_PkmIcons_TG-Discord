@@ -40,6 +40,8 @@ def findIconFileName(mon, form, shiny=False):
     fullPath = "{}/pokemon_icon_{}_{}.webp".format(iconDir, monPadded, formPadded)
     if os.path.isfile(fullPath):
         return "pokemon_icon_{}_{}".format(monPadded, formPadded)
+    elif formPadded == "00":
+        logger.warning("Form 00 file not found ... why??")
     else:
         logger.warning("did not find file {} - fallback to 00 form".format(fullPath))
         return "pokemon_icon_{}_00".format(monPadded)
