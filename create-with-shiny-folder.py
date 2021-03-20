@@ -14,11 +14,22 @@ logger = logging
 def parseEnumProto(url, name):
     r = requests.get(url)
     enumDict = {}
+    found = False
+    internalName = "enum {}".format(name)
     for line in r.iter_lines(decode_unicode=True):
+        if not found:
+            if internalName in line:
+                found = True
+            continue
         if not line.startswith("syntax") and not line.startswith("package") and "=" in line:
             enumDict[line.split("=")[0].strip()] = line.split("=")[1].replace(";", "").strip()
+        if "}" in line:
+            break
     enumDict = addEnumInfo(name, enumDict)
-    return Enum(name, enumDict)
+    resultingEnum = Enum(name.replace("Holo", ""), enumDict)
+    globals()[name.replace("Holo", "")] = resultingEnum
+    return resultingEnum
+
 
 
 def addEnumInfo(name, enumDict):
@@ -67,10 +78,11 @@ def copyAll(mon, form, shiny=False):
 
 
 # get and process external data
-PokemonId = parseEnumProto("https://raw.githubusercontent.com/Furtif/POGOProtos/master/src/"
-                           "POGOProtos/Enums/PokemonId.proto", "PokemonId")
-Form = parseEnumProto("https://raw.githubusercontent.com/Furtif/POGOProtos/master/src/"
-                      "POGOProtos/Enums/Form.proto", "Form")
+PokemonId = parseEnumProto("https://raw.githubusercontent.com/Furtif/POGOProtos/master/base/base.proto",
+                                      "HoloPokemonId")
+Form = parseEnumProto("https://raw.githubusercontent.com/Furtif/POGOProtos/master/base/base.proto", "Form")
+
+
 shinyPokemon = requests.get("https://pogoapi.net/api/v1/shiny_pokemon.json").json()
 releasedPokemon = requests.get("https://pogoapi.net/api/v1/released_pokemon.json").json()
 formList = [e.name for e in Form]
